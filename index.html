@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI BPK - Secure Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #chat-window::-webkit-scrollbar { width: 5px; }
+        #chat-window::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+        .gemini-prose h1, .gemini-prose h2 { font-weight: 600; margin-top: 1rem; }
+        .gemini-prose ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+        .gemini-prose li { margin-bottom: 0.5rem; }
+        .gemini-prose strong { color: #1e293b; font-weight: 600; }
+        .gemini-prose p { margin-bottom: 1rem; line-height: 1.6; color: #334155; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .logo-container { background: white; border: 1px solid #f3f4f6; overflow: hidden; }
+        .logo-img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+    </style>
+</head>
+<body class="bg-slate-50 h-screen flex flex-col">
+
+    <div id="login-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 text-center space-y-6">
+            <div class="w-20 h-20 mx-auto rounded-full logo-container p-2">
+                <img src="https://www.pelajaran.co.id/wp-content/uploads/2017/04/BPK-Badan-Pemeriksa-Keuangan.jpg" alt="BPK Logo" class="object-contain">
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Sistem Analisis BPK</h2>
+                <p class="text-slate-500 text-sm mt-1">Silakan masuk untuk mengakses data LPE Aceh</p>
+            </div>
+            <form id="login-form" class="space-y-4 text-left">
+                <div>
+                    <label class="text-xs font-semibold text-slate-500 uppercase ml-1">Username</label>
+                    <input type="text" id="username" class="w-full mt-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Masukkan username" required>
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-500 uppercase ml-1">Password</label>
+                    <input type="password" id="password" class="w-full mt-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition-all active:scale-95">Masuk Ke Sistem</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden h-screen flex flex-col bg-white">
+        <header class="p-4 flex items-center justify-between border-b border-gray-100 bg-white sticky top-0 z-10 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full logo-container flex items-center justify-center">
+                    <img src="https://www.pelajaran.co.id/wp-content/uploads/2017/04/BPK-Badan-Pemeriksa-Keuangan.jpg" alt="BPK Logo" class="logo-img">
+                </div>
+                <div>
+                    <h1 class="text-gray-800 font-bold text-md leading-none">AI BPK</h1>
+                    <span class="text-[10px] text-green-500 font-medium">● Sesi Aktif</span>
+                </div>
+            </div>
+            <button id="logout-btn" class="text-xs font-semibold text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg transition">Keluar</button>
+        </header>
+
+        <main id="chat-window" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 max-w-4xl mx-auto w-full">
+            </main>
+
+        <footer class="p-4 bg-white border-t border-slate-100">
+            <form id="chat-form" class="max-w-3xl mx-auto">
+                <div class="flex flex-col border border-slate-200 rounded-3xl bg-[#f8f9fa] p-2 focus-within:ring-2 focus-within:ring-blue-100 transition">
+                    <div id="file-preview" class="hidden px-4 py-2 flex items-center gap-2">
+                        <span class="bg-white border border-slate-200 px-3 py-1 rounded-full text-[11px] text-blue-600 font-medium" id="file-name"></span>
+                        <button type="button" id="clear-file" class="text-slate-400 hover:text-red-500 text-lg">&times;</button>
+                    </div>
+                    <div class="flex items-center gap-2 px-2">
+                        <label for="file-input" class="p-2 text-slate-500 hover:bg-slate-200 rounded-full cursor-pointer transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </label>
+                        <input type="file" id="file-input" class="hidden">
+                        <input type="text" id="chat-input" placeholder="Tanya analisis data ekonomi..." class="flex-1 bg-transparent border-none focus:ring-0 py-3 text-slate-700 outline-none text-sm">
+                        <button type="submit" class="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </footer>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'bpk_chat_history';
+        const AUTH_KEY = 'bpk_auth_session';
+        const WEBHOOK_URL = 'https://cloudtogether.site/webhook/1c3d65c7-eb51-43c7-9bc5-0f46dcbd8469';
+
+        // --- SISTEM LOGIN ---
+        const loginForm = document.getElementById('login-form');
+        const loginModal = document.getElementById('login-modal');
+        const mainApp = document.getElementById('main-app');
+
+        function checkAuth() {
+            if (localStorage.getItem(AUTH_KEY)) {
+                loginModal.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                loadHistory();
+            }
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (document.getElementById('username').value === 'admin' && document.getElementById('password').value === 'bpk2026') {
+                localStorage.setItem(AUTH_KEY, 'true');
+                checkAuth();
+            } else {
+                alert('Username atau Password salah!');
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem(AUTH_KEY);
+            location.reload();
+        });
+
+        // --- SISTEM CHAT ---
+        const chatForm = document.getElementById('chat-form');
+        const chatWindow = document.getElementById('chat-window');
+        const fileInput = document.getElementById('file-input');
+
+        function saveMessage(text, isUser) {
+            let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            history.push({ text, isUser, time: new Date().getTime() });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        }
+
+        function loadHistory() {
+            chatWindow.innerHTML = ''; // Clear current
+            let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            
+            if (history.length === 0) {
+                appendMessage("Halo! Saya asisten virtual BPK. Sesi riwayat baru dimulai.", false, false);
+            } else {
+                history.forEach(msg => appendMessage(msg.text, msg.isUser, false));
+            }
+        }
+
+        function appendMessage(text, isUser = false, shouldSave = true) {
+            const wrapper = document.createElement('div');
+            wrapper.className = isUser ? "flex flex-row-reverse gap-4 fade-in items-start" : "flex gap-4 fade-in items-start";
+            
+            const icon = isUser 
+                ? '<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 text-[10px] font-bold text-white shadow-sm">USER</div>'
+                : `<div class="w-8 h-8 rounded-full logo-container shrink-0 shadow-sm"><img src="https://www.pelajaran.co.id/wp-content/uploads/2017/04/BPK-Badan-Pemeriksa-Keuangan.jpg" class="logo-img"></div>`;
+
+            const content = isUser 
+                ? `<div class="text-sm text-gray-800 pt-1 bg-blue-50 px-4 py-2 rounded-2xl rounded-tr-none shadow-sm">${text}</div>`
+                : `<div class="gemini-prose text-sm pt-1 w-full">${marked.parse(text)}</div>`;
+
+            wrapper.innerHTML = icon + content;
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            if (shouldSave) saveMessage(text, isUser);
+        }
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                document.getElementById('file-name').textContent = "📎 " + fileInput.files[0].name;
+                document.getElementById('file-preview').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('clear-file').addEventListener('click', () => {
+            fileInput.value = '';
+            document.getElementById('file-preview').classList.add('hidden');
+        });
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = document.getElementById('chat-input').value;
+            const file = fileInput.files[0];
+            if(!message && !file) return;
+
+            appendMessage(message || (file ? "Mengirim file: " + file.name : ""), true);
+            document.getElementById('chat-input').value = '';
+
+            const formData = new FormData();
+            formData.append('chat_message', message);
+            if (file) formData.append('data', file);
+
+            try {
+                const response = await fetch(WEBHOOK_URL, { method: 'POST', body: formData });
+                const result = await response.text();
+                appendMessage(result, false);
+                fileInput.value = '';
+                document.getElementById('file-preview').classList.add('hidden');
+            } catch (error) {
+                appendMessage("Gagal terhubung ke n8n. Pastikan server aktif.", false);
+            }
+        });
+
+        checkAuth();
+    </script>
+</body>
+</html>
