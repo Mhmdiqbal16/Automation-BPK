@@ -83,13 +83,15 @@
                     </div>
                 </div>
             </form>
+            <p class="text-[10px] text-center text-gray-400 mt-2 italic">Sistem Analisis Data Laju Pertumbuhan Ekonomi (LPE) Aceh</p>
         </footer>
     </div>
 
     <script>
         const STORAGE_KEY = 'bpk_chat_history';
         const AUTH_KEY = 'bpk_auth_session';
-        const WEBHOOK_URL = 'https://cloudtogether.site/webhook/41e63113-2cb7-430c-a7df-eeff4da3d130';
+        // URL Webhook Terbaru yang Anda Berikan
+        const WEBHOOK_URL = 'https://cloudtogether.site/webhook-test/c52b8968-deb6-4bca-9fc1-d76390cfcab1';
 
         // --- SISTEM LOGIN ---
         const loginForm = document.getElementById('login-form');
@@ -131,7 +133,7 @@
         }
 
         function loadHistory() {
-            chatWindow.innerHTML = ''; // Clear current
+            chatWindow.innerHTML = '';
             let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
             
             if (history.length === 0) {
@@ -192,15 +194,11 @@
                 fileInput.value = '';
                 document.getElementById('file-preview').classList.add('hidden');
             } catch (error) {
-                appendMessage("Gagal terhubung ke n8n. Pastikan server aktif.", false);
+                appendMessage("Gagal terhubung ke n8n. Pastikan tombol 'Listen for Test Event' sudah ditekan.", false);
             }
         });
 
         checkAuth();
     </script>
 </body>
-
 </html>
-
-
-
